@@ -1,0 +1,24 @@
+[package]
+name = "edk2-ffs"
+version = "0.1.0"
+edition = "2021"
+description = "A library that handles UEFI PI Firmware Volume and it's sub compoments.\nTargets losslessly read and writeback (WIP)\nReferencing EDK2 tag edk2-stable202405"
+license = "MIT"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[features]
+
+
+[dependencies]
+uuid = "1.4.1"
+edk2-guid-process-sys = { git = "https://github.com/PaddyThePaddy/edk2-guid-process-sys" }
+memchr = "2.6.3"
+custom_debug = "0.5.1"
+binrw = "0.13.3"
+getset = "0.1.2"
+thiserror = "1.0.61"
+int-enum = "1.1.2"
+
+[dev-dependencies]
+anyhow = { version = "1.0.86", features = ["backtrace"] }
