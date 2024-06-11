@@ -196,7 +196,7 @@ pub struct FileHdr {
 
     /// Used to track the state of the file throughout the life of the file from creation to deletion.
     #[getset(get = "pub")]
-    #[br(assert(!state.invalid(), FfsLibError::EndOfFv), dbg)]
+    #[br(assert(!state.invalid(), FfsLibError::EndOfFv))]
     state: FileState,
 
     /// The length of the file in bytes, including the FFS header.
