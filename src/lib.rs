@@ -489,8 +489,12 @@ impl<T: std::error::Error + Send> SearchError for T {}
 
 #[derive(Debug, Clone, Default)]
 pub struct SearchOption {
+    /// Match against Fv's optional name guid and FfsFile's name guid
     target: Option<Uuid>,
+    /// Only search for certain level
     level: Option<usize>,
+    /// Search against FfsFile's optional USER_INTERFACE section
+    name: Option<String>,
     current_lvl: usize,
 }
 
@@ -506,6 +510,11 @@ impl SearchOption {
 
     pub fn level(mut self, level: Option<usize>) -> Self {
         self.level = level;
+        self
+    }
+
+    pub fn name(mut self, name: Option<String>) -> Self {
+        self.name = name;
         self
     }
 
@@ -535,6 +544,28 @@ impl SearchOption {
 
         if let Some(level) = &self.level {
             if *level == 0 {
+                return Ok(false);
+            }
+        }
+
+        if let Some(name) = &self.name {
+            if let FfsComponent::File(file) = obj {
+                if !file
+                    .try_borrow()?
+                    .payload()
+                    .sections()
+                    .is_some_and(|sections| {
+                        sections.iter().any(|sect| {
+                            sect.try_borrow().is_ok_and(|sect| match sect.payload() {
+                                SectionPayload::USER_INTERFACE { filename } => filename == name,
+                                _ => false,
+                            })
+                        })
+                    })
+                {
+                    return Ok(false);
+                }
+            } else {
                 return Ok(false);
             }
         }
@@ -614,6 +645,25 @@ mod test {
                 },
                 &SearchOption::default()
                     .target(Some(uuid::uuid!("D6A2CB7F-6A18-4e2f-B43B-9920A733700A"))),
+            )
+            .unwrap();
+        section
+            .search(
+                &mut |comp, _| {
+                    let mut buf = vec![];
+                    let mut writer = Cursor::new(&mut buf);
+                    comp.as_ffs().unwrap().borrow().write(&mut writer).unwrap();
+                    len = buf.len();
+                    assert_eq!(ref_data.len(), buf.len());
+                    for i in 0..buf.len() {
+                        // skip state field because it can be different depends on FV's erase polarity
+                        if i != 0x17 {
+                            assert_eq!(buf[i], ref_data[i]);
+                        }
+                    }
+                    Ok(SearchAction::Abort)
+                },
+                &SearchOption::default().name(Some("DxeMain".to_string())),
             )
             .unwrap();
         Ok(())

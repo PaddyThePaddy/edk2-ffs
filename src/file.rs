@@ -148,6 +148,15 @@ pub enum FilePayload {
     ),
 }
 
+impl FilePayload {
+    pub fn sections(&self) -> Option<&[Rc<RefCell<Section>>]> {
+        match self {
+            FilePayload::Sections(sect) => Some(sect.as_slice()),
+            _ => None,
+        }
+    }
+}
+
 /// Each file begins with the header that describe the
 /// contents and state of the files.
 #[binrw]
