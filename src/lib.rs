@@ -419,11 +419,14 @@ impl FfsComponent {
         callback: &mut dyn FnMut(
             &FfsComponent,
             &SearchParam,
-        ) -> Result<SearchAction, Box<dyn std::error::Error>>,
+        ) -> Result<SearchAction, Box<dyn SearchError>>,
         options: &SearchOption,
-    ) -> Result<SearchAction, Box<dyn std::error::Error>> {
+    ) -> Result<SearchAction, Box<dyn SearchError>> {
         let mut action = SearchAction::Continue;
-        if options.test(self)? {
+        if match options.test(self) {
+            Err(e) => return Err(Box::new(e)),
+            Ok(r) => r,
+        } {
             let param = SearchParam {
                 depth: options.current_lvl,
             };
@@ -443,7 +446,10 @@ impl FfsComponent {
             }
             child_options.current_lvl += 1;
             for child in self.children() {
-                let child = child?;
+                let child = match child {
+                    Err(e) => return Err(Box::new(e)),
+                    Ok(r) => r,
+                };
                 let action = child.search(callback, &child_options)?;
                 if action == SearchAction::Abort {
                     return Ok(action);
@@ -477,6 +483,9 @@ pub enum SearchAction {
     Abort,
     SkipChildren,
 }
+
+pub trait SearchError: std::error::Error + Send {}
+impl<T: std::error::Error + Send> SearchError for T {}
 
 #[derive(Debug, Clone, Default)]
 pub struct SearchOption {
