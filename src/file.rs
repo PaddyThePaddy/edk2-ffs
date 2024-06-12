@@ -164,10 +164,10 @@ impl FilePayload {
 #[br(stream = stream,
      map_stream = Checksum8::new,
     assert(stream.check() == file_checksum.wrapping_add(state.data)))]
-#[derive(custom_debug::Debug, Clone, Getters, CopyGetters)]
+#[derive(custom_debug::Debug, Clone, Getters, CopyGetters, MutGetters)]
 pub struct FileHdr {
     /// This GUID is the file name. It is used to uniquely identify the file.
-    #[getset(get = "pub")]
+    #[getset(get = "pub", get_mut = "pub")]
     name: UuidBytes,
 
     /// The IntegrityCheck.Checksum.Header field is an 8-bit checksum of the file
@@ -183,7 +183,7 @@ pub struct FileHdr {
     /// the IntegrityCheck.Checksum.File field must be initialized with a value of
     /// 0xAA. The IntegrityCheck.Checksum.File field is valid any time the
     /// EFI_FILE_DATA_VALID bit is set in the State field.
-    #[getset(get_copy = "pub")]
+    #[getset(get_copy = "pub", get_mut = "pub")]
     #[debug(format = "{0:} | {0:#X}")]
     file_checksum: u8,
 
@@ -204,14 +204,14 @@ pub struct FileHdr {
     raw_size: [u8; 3],
 
     /// Used to track the state of the file throughout the life of the file from creation to deletion.
-    #[getset(get = "pub")]
+    #[getset(get = "pub", get_mut = "pub")]
     #[br(assert(!state.invalid(), FfsLibError::EndOfFv))]
     state: FileState,
 
     /// The length of the file in bytes, including the FFS header.
     #[br(parse_with(parse_size), args(attributes, raw_size))]
     #[bw(write_with(write_size), args(attributes))]
-    #[getset(get_copy = "pub")]
+    #[getset(get_copy = "pub", get_mut = "pub")]
     #[debug(format = "{0:} | {0:#X}")]
     size: usize,
 }

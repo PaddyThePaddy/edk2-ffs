@@ -136,7 +136,7 @@ impl ReadEndian for Fv {
 
 #[binrw]
 #[brw(little, magic = b"\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0")]
-#[derive(Clone, Getters, CopyGetters, custom_debug::Debug)]
+#[derive(Clone, Getters, CopyGetters, custom_debug::Debug, MutGetters)]
 #[br(stream = stream, map_stream = Checksum16::new, assert(stream.check() == 0))]
 pub struct FvHdr {
     /// Declares the file system with which the firmware volume is formatted.
@@ -145,19 +145,19 @@ pub struct FvHdr {
     /// Length in bytes of the complete firmware volume, including the header.
     #[br(map = |v: u64| v as usize)]
     #[bw(map = |v: &usize| *v as u64)]
-    #[getset(get_copy = "pub")]
+    #[getset(get_copy = "pub", get_mut = "pub")]
     #[debug(format = "{0:} | {0:#X}")]
     fv_length: usize,
 
     /// Declares capabilities and power-on defaults for the firmware volume.
     #[brw(magic = b"_FVH")]
-    #[getset(get_copy = "pub")]
+    #[getset(get_copy = "pub", get_mut = "pub")]
     attr: FvAttr,
 
     /// Length in bytes of the complete firmware volume header.
     #[br(map = |v: u16| v as usize)]
     #[bw(map = |v: &usize| *v as u16)]
-    #[getset(get_copy = "pub")]
+    #[getset(get_copy = "pub", get_mut = "pub")]
     #[debug(format = "{0:} | {0:#X}")]
     header_length: usize,
 
@@ -169,7 +169,7 @@ pub struct FvHdr {
     /// (EFI_FIRMWARE_VOLUME_EXT_HEADER) or zero if there is no extended header.
     #[br(map = |v: u16| v as usize)]
     #[bw(map = |v: &usize| *v as u16)]
-    #[getset(get_copy = "pub")]
+    #[getset(get_copy = "pub", get_mut = "pub")]
     #[debug(format = "{0:} | {0:#X}")]
     ext_hdr_offset: usize,
     // Do not use padding macro, because it will skip the read operation
@@ -178,12 +178,13 @@ pub struct FvHdr {
 
     /// Set to 2. Future versions of this specification may define new header fields and will
     /// increment the Revision field accordingly.
-    #[getset(get_copy = "pub")]
+    #[getset(get_copy = "pub", get_mut = "pub")]
     revision: u8,
 
     /// An array of run-length encoded FvBlockMapEntry structures. The array is
     /// terminated with an entry of {0,0}.
     #[br(count = (header_length - 0x32) / 8)]
+    #[getset(get = "pub", get_mut = "pub")]
     block_map: Vec<BlockMap>,
 }
 

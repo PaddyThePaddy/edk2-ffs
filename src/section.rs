@@ -5,7 +5,7 @@ use std::{
 };
 
 use binrw::{binread, binrw, BinRead, BinResult, BinWrite, Endian};
-use getset::{Getters, MutGetters};
+use getset::{CopyGetters, Getters, MutGetters};
 use uuid::Uuid;
 
 use crate::{
@@ -78,7 +78,7 @@ impl BinWrite for Section {
 
 #[binrw]
 #[brw(little)]
-#[derive(custom_debug::Debug, Clone, Getters)]
+#[derive(custom_debug::Debug, Clone, CopyGetters, MutGetters)]
 pub struct SectionHdr {
     /// A 24-bit unsigned integer that contains the total size of the section in bytes,
     /// including the EFI_COMMON_SECTION_HEADER.
@@ -90,6 +90,7 @@ pub struct SectionHdr {
     #[br(parse_with(parse_size), args(raw_size))]
     #[bw(write_with(write_size), args(raw_size))]
     #[debug(format = "{0:} | {0:#X}")]
+    #[getset(get_copy = "pub", get_mut = "pub")]
     size: usize,
 }
 
