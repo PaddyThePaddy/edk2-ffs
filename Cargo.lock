@@ -200,7 +200,7 @@ dependencies = [
 [[package]]
 name = "edk2-guid-process-sys"
 version = "0.1.0"
-source = "git+https://github.com/PaddyThePaddy/edk2-guid-process-sys#598b9a4bca38e52bd64039c275ef56bf327442f6"
+source = "git+https://github.com/PaddyThePaddy/edk2-guid-process-sys#cebc5b2e11ed8f33be8615f579d8807e02e0ea09"
 dependencies = [
  "bindgen",
  "cc",
