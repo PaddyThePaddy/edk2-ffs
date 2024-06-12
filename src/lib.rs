@@ -416,12 +416,18 @@ impl FfsComponent {
 
     pub fn search(
         &self,
-        callback: &mut dyn FnMut(&FfsComponent) -> Result<SearchAction, Box<dyn std::error::Error>>,
+        callback: &mut dyn FnMut(
+            &FfsComponent,
+            &SearchParam,
+        ) -> Result<SearchAction, Box<dyn std::error::Error>>,
         options: &SearchOption,
     ) -> Result<SearchAction, Box<dyn std::error::Error>> {
         let mut action = SearchAction::Continue;
         if options.test(self)? {
-            action = callback(self)?;
+            let param = SearchParam {
+                depth: options.current_lvl,
+            };
+            action = callback(self, &param)?;
         }
         if action == SearchAction::Abort {
             return Ok(action);
@@ -435,6 +441,7 @@ impl FfsComponent {
                 }
                 child_options.level = Some(lvl - 1);
             }
+            child_options.current_lvl += 1;
             for child in self.children() {
                 let child = child?;
                 let action = child.search(callback, &child_options)?;
@@ -475,6 +482,7 @@ pub enum SearchAction {
 pub struct SearchOption {
     target: Option<Uuid>,
     level: Option<usize>,
+    current_lvl: usize,
 }
 
 impl SearchOption {
@@ -523,6 +531,12 @@ impl SearchOption {
         }
         Ok(true)
     }
+}
+
+#[derive(Debug, getset::CopyGetters)]
+pub struct SearchParam {
+    #[getset(get_copy = "pub")]
+    depth: usize,
 }
 
 static FINDER: OnceLock<memchr::memmem::Finder> = OnceLock::new();
@@ -575,7 +589,7 @@ mod test {
         let mut len = 0;
         section
             .search(
-                &mut |comp| {
+                &mut |comp, _| {
                     let mut buf = vec![];
                     let mut writer = Cursor::new(&mut buf);
                     comp.as_ffs().unwrap().borrow().write(&mut writer).unwrap();
