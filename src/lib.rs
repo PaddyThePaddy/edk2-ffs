@@ -484,8 +484,8 @@ pub enum SearchAction {
     SkipChildren,
 }
 
-pub trait SearchError: std::error::Error + Send {}
-impl<T: std::error::Error + Send> SearchError for T {}
+pub trait SearchError: std::error::Error + Send + Sync {}
+impl<T: std::error::Error + Send + Sync> SearchError for T {}
 
 #[derive(Debug, Clone, Default)]
 pub struct SearchOption {
