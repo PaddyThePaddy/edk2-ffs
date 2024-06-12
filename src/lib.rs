@@ -285,7 +285,7 @@ fn buf_fmt(val: &Vec<u8>, f: &mut fmt::Formatter) -> fmt::Result {
 #[derive(Debug, Clone)]
 pub enum FfsComponent {
     Fv(Rc<RefCell<Fv>>),
-    Ffs(Rc<RefCell<File>>),
+    File(Rc<RefCell<File>>),
     Section(Rc<RefCell<Section>>),
 }
 
@@ -303,13 +303,13 @@ impl From<&Rc<RefCell<Fv>>> for FfsComponent {
 
 impl From<File> for FfsComponent {
     fn from(value: File) -> Self {
-        Self::Ffs(Rc::new(RefCell::new(value)))
+        Self::File(Rc::new(RefCell::new(value)))
     }
 }
 
 impl From<&Rc<RefCell<File>>> for FfsComponent {
     fn from(value: &Rc<RefCell<File>>) -> Self {
-        Self::Ffs(value.clone())
+        Self::File(value.clone())
     }
 }
 
@@ -335,7 +335,7 @@ impl FfsComponent {
     }
 
     pub fn as_ffs(&self) -> Option<Rc<RefCell<File>>> {
-        if let Self::Ffs(obj) = self {
+        if let Self::File(obj) = self {
             Some(obj.clone())
         } else {
             None
@@ -358,7 +358,7 @@ impl FfsComponent {
                 .get(idx)
                 .map(FfsComponent::from)
                 .ok_or(FfsLibError::NotFound),
-            Self::Ffs(obj) => {
+            Self::File(obj) => {
                 if let FilePayload::Sections(sections) = obj.try_borrow()?.payload() {
                     sections
                         .get(idx)
@@ -505,7 +505,7 @@ impl SearchOption {
                         return Ok(false);
                     }
                 }
-                FfsComponent::Ffs(ffs) => {
+                FfsComponent::File(ffs) => {
                     if !ffs.try_borrow()?.hdr().name().as_ref().eq(uuid) {
                         return Ok(false);
                     }
