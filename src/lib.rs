@@ -419,9 +419,9 @@ impl FfsComponent {
         callback: &mut dyn FnMut(
             &FfsComponent,
             &SearchParam,
-        ) -> Result<SearchAction, Box<dyn SearchError>>,
+        ) -> Result<SearchAction, Box<dyn std::error::Error>>,
         options: &SearchOption,
-    ) -> Result<SearchAction, Box<dyn SearchError>> {
+    ) -> Result<SearchAction, Box<dyn std::error::Error>> {
         let mut action = SearchAction::Continue;
         if match options.test(self) {
             Err(e) => return Err(Box::new(e)),
@@ -483,9 +483,6 @@ pub enum SearchAction {
     Abort,
     SkipChildren,
 }
-
-pub trait SearchError: std::error::Error + Send + Sync {}
-impl<T: std::error::Error + Send + Sync> SearchError for T {}
 
 #[derive(Debug, Clone, Default)]
 pub struct SearchOption {
